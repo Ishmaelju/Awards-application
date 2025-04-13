@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Home</title>
+
+    <style>
+      * { box-sizing: border-box; }
+      h1 { font-size: 1.5em; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="purple">
+      <div class="nav-wrapper">
+        <a href="#" style="font-size=1.5em" class="brand-logo left">Logged in As: {{ user.username }}</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li><a href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="row" style="position: absolute; height:20px; top:0; z-index:10; width:100vw">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <nav class="white black-text center">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        </nav>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <div class="row">
+      <!-- Student List -->
+      <section class="col s12 m3" style="margin-top: 5px; overflow-y:scroll; height: 86vh">
+        <ul class="collection">
+          {% for student in students %}
+            <li class="collection-item">
+              <a href="/app/{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- Selected Student Section -->
+      <section class="col s12 m9">
+        {% if selected_student %}
+          <div class="row card" style="margin-bottom:0">
+            <div class="col s2">
+              <img src="{{ selected_student.profile_pic }}" alt="profile" class="circle responsive-img">
+            </div>
+            <div class="col s4">
+              <p><strong>Name:</strong> {{ selected_student.first_name }} {{ selected_student.last_name }}</p>
+              <p><strong>Programme:</strong> {{ selected_student.programme }}</p>
+              <p><strong>Start Year:</strong> {{ selected_student.start_date }}</p>
+            </div>
+
+            <!-- Award Form -->
+            <div class="col s5">
+              <form method="POST" action="{{ url_for('award_sticker') }}">
+                <input type="hidden" name="student_id" value="{{ selected_student.id }}">
+                <div class="input-field col s12">
+                  <select name="sticker_id" class="icons">
+                    <option value="" disabled selected>Choose your option</option>
+                    {% for sticker in stickers %}
+                      <option value="{{ sticker.id }}" data-icon="{{ sticker.image }}" class="left">{{ sticker.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <label>Give Sticker</label>
+                </div>
+                <button type="submit" class="btn waves-effect purple">Award</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="row" style="height: 60vh; overflow-y: scroll; padding:5px; margin-top:0;">
+            {% for award in awarded %}
+              <div class="card horizontal">
+                <div class="card-image">
+                  <img src="{{ award.sticker.image }}" style="height: 100px;">
+                </div>
+                <div class="card-stacked">
+                  <div class="card-content">
+                    <p><strong>{{ award.sticker.name }}</strong> awarded by {{ award.user.username }} on {{ award.date_awarded.strftime('%Y-%m-%d') }}</p>
+                  </div>
+                  {% if award.user.id == user.id %}
+                  <div class="card-action">
+                    <a href="{{ url_for('delete_sticker', sticker_id=award.sticker.id, student_id=selected_student.id) }}" class="red-text">Delete</a>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+        {% else %}
+          <h1 class="center">Select a Student to view details</h1>
+        {% endif %}
+      </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script> M.AutoInit(); </script>
+  </body>
+</html>
